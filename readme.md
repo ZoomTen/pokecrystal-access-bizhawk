@@ -1,13 +1,21 @@
+## Fork README
+
+This is a port of `pokecrystal-access` from VBA-RR Lua to BizHawk Lua.
+
+**This is still a WIP -- the Tolk thing has been replaced with a print() call for now.**
+
+It is currently tested with Crystal 1.1 US on BizHawk 2.11.
+
 ## Introduction
 
-The Pokecrystal access project is a set of scripts which provide access to Pokémon Crystal, the famous GameBoy game, for people using a screen reader.
+The Pokecrystal access project is a set of scripts which provide access to Pokï¿½mon Crystal, the famous GameBoy game, for people using a screen reader.
 These scripts are designed to work with the VBA-ReRecording GameBoy emulator.
   
 ## Requirements and installation
 1. Download the GameBoy emulator VBA Rerecording
 http://vba-rerecording.googlecode.com/files/vba-v24m-svn-r480.7z
 
-1. Get an English pokémon crystal rom.
+1. Get an English pokï¿½mon crystal rom.
 
 1. After you have these, extract and run VBA.
 
