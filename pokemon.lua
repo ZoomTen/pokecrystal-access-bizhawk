@@ -26,7 +26,7 @@ old_pressed_keys = {}
 function load_language(code)
 	local t = { "chars.lua", "fonts.lua", "ram.lua", "sprites.lua" }
 	for i, v in ipairs(t) do
-		which = "data/" .. v
+		which = "lang/en/" .. v
 		local f = loadfile(which)
 		if f ~= nil then
 			f()
@@ -1250,7 +1250,7 @@ if res == nil then
 	names = {}
 end
 
-res, default_names = load_table("data/" .. "default_names.lua")
+res, default_names = load_table("lang/en/" .. "default_names.lua")
 
 if res == nil then
 	tolk.output("Unable to load default names file.")
