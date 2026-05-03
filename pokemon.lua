@@ -37,7 +37,7 @@ end
 function is_printable_screen()
 	local s = ""
 	for i = 0, 15 do
-		s = s .. string.char(memory.read_u8(RAM_SCREEN + i))
+		s = s .. string.char(memory.read_u8(RAM_vTiles1 + i))
 	end
 	if fonts[s] then
 		return true
@@ -69,7 +69,7 @@ function translate(char, above)
 end
 
 function get_screen()
-	local raw_text = memory.read_bytes_as_array(RAM_TEXT, 360)
+	local raw_text = memory.read_bytes_as_array(RAM_wTilemap, 360)
 	local printable = is_printable_screen()
 	local lines = {}
 	local tile_lines = {}
@@ -169,7 +169,7 @@ function trim(s)
 end
 
 function parse_menu_header()
-	local ptr = RAM_MENU_HEADER
+	local ptr = RAM_wMenuHeader
 	local results = {}
 	results.flags = memory.read_u8(ptr)
 	results.start_y = memory.read_u8(ptr + 1)
@@ -207,8 +207,8 @@ end
 
 function get_warps()
 	local current_mapid = get_map_id()
-	local eventstart = memory.read_u16_le(RAM_MAP_EVENT_HEADER_POINTER)
-	local bank = memory.read_u8(RAM_MAP_SCRIPT_HEADER_BANK)
+	local eventstart = memory.read_u16_le(RAM_wMapEventsPointer)
+	local bank = memory.read_u8(RAM_wMapScriptsBank)
 	eventstart = (bank * 16384) + (eventstart - 16384)
 	local warps = memory.read_u8(eventstart + 2, "ROM")
 	local results = {}
@@ -231,8 +231,8 @@ function get_warps()
 end
 
 function get_signposts()
-	local eventstart = memory.read_u16_le(RAM_MAP_EVENT_HEADER_POINTER)
-	local bank = memory.read_u8(RAM_MAP_SCRIPT_HEADER_BANK)
+	local eventstart = memory.read_u16_le(RAM_wMapEventsPointer)
+	local bank = memory.read_u8(RAM_wMapScriptsBank)
 	local mapid = get_map_id()
 	eventstart = (bank * 16384) + (eventstart - 16384)
 	local warps = memory.read_u8(eventstart + 2, "ROM")
@@ -262,11 +262,11 @@ function get_name(mapid, obj)
 end
 
 function get_objects()
-	local ptr = RAM_MAP_OBJECTS + 16 -- skip the player
-	local liveptr = RAM_LIVE_OBJECTS -- live objects
+	local ptr = RAM_wMapObjects + 16 -- skip the player
+	local liveptr = RAM_wObjectMasks -- live objects
 	local results = {}
-	local width = memory.read_u8(RAM_MAP_WIDTH)
-	local height = memory.read_u8(RAM_MAP_HEIGHT)
+	local width = memory.read_u8(RAM_wMapWidth)
+	local height = memory.read_u8(RAM_wMapHeight)
 	local mapid = get_map_id()
 	for i = 1, 15 do
 		local sprite = memory.read_u8(ptr + 0x01)
@@ -281,9 +281,9 @@ function get_objects()
 		local l
 		if object_struct ~= 0xff and y ~= 255 then
 			if language == "ja" then
-				l = RAM_OBJECT_STRUCTS + (object_struct * 40)
+				l = RAM_wObject1Struct + (object_struct * 40)
 			else
-				l = RAM_OBJECT_STRUCTS + ((object_struct - 1) * 40)
+				l = RAM_wObject1Struct + ((object_struct - 1) * 40)
 			end
 			x = memory.read_u8(l + 0x12)
 			y = memory.read_u8(l + 0x13)
@@ -322,7 +322,7 @@ function get_objects()
 end
 
 function get_connections()
-	local connections = memory.read_u8(RAM_MAP_CONNECTIONS)
+	local connections = memory.read_u8(RAM_wMapConnections)
 	local function hasbit(x, p)
 		return x % (p + p) >= p
 	end
@@ -339,25 +339,25 @@ function get_connections()
 	if hasbit(connections, NORTH) then
 		add_connection(
 			"north",
-			memory.read_u8(RAM_MAP_NORTH_CONNECTION) * 256 + memory.read_u8(RAM_MAP_NORTH_CONNECTION + 1)
+			memory.read_u8(RAM_wNorthMapConnection) * 256 + memory.read_u8(RAM_wNorthMapConnection + 1)
 		)
 	end
 	if hasbit(connections, SOUTH) then
 		add_connection(
 			"south",
-			memory.read_u8(RAM_MAP_SOUTH_CONNECTION) * 256 + memory.read_u8(RAM_MAP_SOUTH_CONNECTION + 1)
+			memory.read_u8(RAM_wSouthMapConnection) * 256 + memory.read_u8(RAM_wSouthMapConnection + 1)
 		)
 	end
 	if hasbit(connections, EAST) then
 		add_connection(
 			"east",
-			memory.read_u8(RAM_MAP_EAST_CONNECTION) * 256 + memory.read_u8(RAM_MAP_EAST_CONNECTION + 1)
+			memory.read_u8(RAM_wEastMapConnection) * 256 + memory.read_u8(RAM_wEastMapConnection + 1)
 		)
 	end
 	if hasbit(connections, WEST) then
 		add_connection(
 			"west",
-			memory.read_u8(RAM_MAP_WEST_CONNECTION) * 256 + memory.read_u8(RAM_MAP_WEST_CONNECTION + 1)
+			memory.read_u8(RAM_wWestMapConnection) * 256 + memory.read_u8(RAM_wWestMapConnection + 1)
 		)
 	end
 	return results
@@ -394,8 +394,8 @@ function get_map_info()
 end
 
 function get_map_gn()
-	local mapgroup = memory.read_u8(RAM_MAP_GROUP)
-	local mapnumber = memory.read_u8(RAM_MAP_NUMBER)
+	local mapgroup = memory.read_u8(RAM_wMapGroup)
+	local mapnumber = memory.read_u8(RAM_wMapNumber)
 	return mapgroup, mapnumber
 end
 
@@ -407,7 +407,7 @@ end
 -- Returns true or false indicating whether we're on a map or not.
 function on_map()
 	local mapgroup, mapnumber = get_map_gn()
-	if (mapnumber == 0 and mapgroup == 0) or memory.read_u8(RAM_IN_BATTLE) ~= 0 then
+	if (mapnumber == 0 and mapgroup == 0) or memory.read_u8(RAM_wBattleMode) ~= 0 then
 		return false
 	else
 		return true
@@ -728,8 +728,8 @@ end
 
 function get_map_blocks()
 	-- map width, height in blocks
-	local width = memory.read_u8(RAM_MAP_WIDTH)
-	local height = memory.read_u8(RAM_MAP_HEIGHT)
+	local width = memory.read_u8(RAM_wMapWidth)
+	local height = memory.read_u8(RAM_wMapHeight)
 	local row_width = width + 6 -- including border
 	ptr = 0xc800             -- start of overworld
 	-- there is a border of 3 blocks on each edge of the map.
@@ -753,8 +753,8 @@ function get_map_collisions()
 		collisions[y][x] = type
 	end
 
-	local collision_bank = memory.read_u8(RAM_COLLISION_BANK)
-	local collision_addr = memory.read_u16_le(RAM_COLLISION_ADDR)
+	local collision_bank = memory.read_u8(RAM_wTilesetCollisionBank)
+	local collision_addr = memory.read_u16_le(RAM_wTilesetCollisionAddress)
 	collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
 
 	for y = 0, #blocks do
@@ -775,8 +775,8 @@ end
 
 function find_path_to(obj)
 	local path
-	local width = memory.read_u8(RAM_MAP_WIDTH)
-	local height = memory.read_u8(RAM_MAP_HEIGHT)
+	local width = memory.read_u8(RAM_wMapWidth)
+	local height = memory.read_u8(RAM_wMapHeight)
 
 	if obj.type == "connection" then
 		if obj.direction == "north" then
@@ -1018,7 +1018,7 @@ function get_enemy_health()
 		end
 		return total
 	end
-	local enemy = read_bar(RAM_TEXT + (2 * 20) + 4)
+	local enemy = read_bar(RAM_wTilemap + (2 * 20) + 4)
 	if enemy == nil then
 		return nil
 	else
@@ -1059,8 +1059,8 @@ function group_unique_items(t)
 end
 
 function read_keyboard()
-	local x = memory.read_u8(RAM_KEYBOARD_X)
-	local y = memory.read_u8(RAM_KEYBOARD_Y)
+	local x = memory.read_u8(RAM_wSpriteAnim2Var1)
+	local y = memory.read_u8(RAM_wSpriteAnim2Var2)
 	local t = KEYBOARD_UPPER
 	if screen.lines[17]:match(KEYBOARD_UPPER_STRING) ~= nil then
 		t = KEYBOARD_LOWER
@@ -1070,7 +1070,7 @@ function read_keyboard()
 end
 
 function get_block(mapx, mapy)
-	local width = memory.read_u8(RAM_MAP_WIDTH)
+	local width = memory.read_u8(RAM_wMapWidth)
 	local row_width = width + 6
 	local ptr = 0xc801 + row_width
 	-- now we're on the second row, second column
@@ -1081,8 +1081,8 @@ function get_block(mapx, mapy)
 end
 
 function get_collision_data(block)
-	local collision_bank = memory.read_u8(RAM_COLLISION_BANK)
-	local collision_addr = memory.read_u16_le(RAM_COLLISION_ADDR)
+	local collision_bank = memory.read_u8(RAM_wTilesetCollisionBank)
+	local collision_addr = memory.read_u16_le(RAM_wTilesetCollisionAddress)
 	collision_addr = (collision_bank * 16384) + (collision_addr - 16384)
 	return memory.gbromreadbyterange(collision_addr + (block * 4), 4)
 end
@@ -1123,8 +1123,8 @@ function get_textbox()
 end
 
 function handle_keyboard()
-	col = memory.read_u8(RAM_KEYBOARD_X)
-	row = memory.read_u8(RAM_KEYBOARD_Y)
+	col = memory.read_u8(RAM_wSpriteAnim2Var1)
+	row = memory.read_u8(RAM_wSpriteAnim2Var2)
 	if row ~= old_kbd_row or col ~= old_kbd_col then
 		read_keyboard()
 		old_kbd_row = row
@@ -1162,7 +1162,7 @@ function facing_to_string(d)
 end
 
 function get_player_xy()
-	return memory.read_u8(RAM_PLAYER_X), memory.read_u8(RAM_PLAYER_Y)
+	return memory.read_u8(RAM_wXCoord), memory.read_u8(RAM_wYCoord)
 end
 
 commands = {
@@ -1229,7 +1229,7 @@ function main_loop()
 end
 
 function on_footstep()
-	local type = memory.read_u8(RAM_STANDING_TILE)
+	local type = memory.read_u8(RAM_wPlayerTileCollision)
 	camera_x = -1
 	camera_y = -1
 	play_tile_sound(type, 0, 30, false)
@@ -1259,5 +1259,5 @@ end
 
 load_language("en")
 event.on_bus_exec(on_footstep, RAM_FOOTSTEP_FUNCTION)
-event.on_bus_exec(on_bankswitch, RAM_BANK_SWITCH)
+event.on_bus_exec(on_bankswitch, RAM_FarCall_hl)
 event.onframeend(main_loop, "frame loop")

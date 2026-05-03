@@ -1,5 +1,5 @@
 RAM_FOOTSTEP_FUNCTION = 0x2916
-RAM_BANK_SWITCH = 0x2d4d
+RAM_FarCall_hl = 0x2d4d
 KEYBOARD_STRING = "SCH ENDE"
 KEYBOARD_UPPER = {
 {"a", "b", "c", "d", "e", "f", "g", "h", "i"},
